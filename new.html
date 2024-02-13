@@ -1,0 +1,202 @@
+<!DOCTYPE html> 
+<html lang="en"> 
+  <head> 
+    <meta charset="UTF-8" /> 
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /> 
+    <title>Document</title> 
+    <link rel="stylesheet" href="new.css" /> 
+  </head> 
+  <body> 
+    <div class="content"> 
+      <img src="" alt="" /> 
+      <div class="text"> 
+        <p> 
+          Happy Valentine's Day My Love💖, 
+          <br />
+         I am grateful to god for making you my boyfriend which is not only my boyfriend but also<b>MY BEST FRIEND</b>with whom i can 
+         confide in, laugh with, and share my deepest thoughts and feelings. <b>MY COMPANION</b> with whom i can spend my quality time,
+         whether it's cuddling on the bed or watching the movies together or exploring new places together or fighting for the last sip 
+         of the drink. <b>MY ROMANTIC PARTNER</b> with whom i can plan special dates and surprises and gestures to keep the the romance
+         alive. <b>MY BATTLE BUDDY </b> with whom i can argue and fight alot. You are one of the most important part of my life without
+        whom i am incomplete. You are my rock, my confidence and my greatest source of joy. I cherish every memory we've created together,
+        from the laughter to the tears. I want you to know how much you mean to me. I know we fights alot and we're not like other couples 
+        but the means we're unique and special to each other. Despite our arguments and fights, you're still the one I want to share my life
+        with. I am thankful to you for making me feel so special by your side. No matter the highs and lows life throws my way, your presence
+        brings me comfort. just hearing your voice or seeing your smile waashes away any pain, even if it's caused by you. Your love is my 
+        sanctuary. I cant imagine leaving you, and i never want to. It's very painful for me to see you with other girls or talking to them.
+        It hurts when i feel ignored, and find myself harming myself everyday because of this overthinking. And you know what hurts even more?
+         when you dont even ask me about it. I just needyou to understand how much your attention, care, love means to me.<br>
+        I really love you so much meriii jaannn muahhhh ❤️❤️💋💋💋🌎💍 <br>
+        Bss gussaa mt kiya kr yrr bht dukhta hai <br><br>
+        And in the end i just want to say that.........
+        <br> koi aur duja ku mujhe na tere siva chaiye,
+        <br>har safar mei mujhe tu hi rehnuma chaiye,
+        <br>jeene ko bss mujhe tu hi meharma chaiye.
+
+        </p> 
+        <p>Missing You A Lot 🤞💖</p> 
+      </div> 
+    </div> 
+    <h3>Swipe on screen to see the Secert Message</h3> 
+    <canvas></canvas> 
+ 
+    <script type="x-shader/x-fragment" id="vertShader"> 
+      precision highp float; 
+ 
+        attribute vec2 aPosition; 
+        varying vec2 vUv; 
+        varying vec2 vL; 
+        varying vec2 vR; 
+        varying vec2 vT; 
+        varying vec2 vB; 
+        uniform vec2 u_vertex_texel; 
+ 
+        void main () { 
+            vUv = aPosition * .5 + .5; 
+            vL = vUv - vec2(u_vertex_texel.x, 0.); 
+            vR = vUv + vec2(u_vertex_texel.x, 0.); 
+            vT = vUv + vec2(0., u_vertex_texel.y); 
+            vB = vUv - vec2(0., u_vertex_texel.y); 
+            gl_Position = vec4(aPosition, 0., 1.); 
+        } 
+    </script> 
+ 
+    <script type="x-shader/x-fragment" id="fragShaderAdvection"> 
+      precision highp float; 
+        precision highp sampler2D; 
+        
+        varying vec2 vUv; 
+        uniform sampler2D u_velocity_txr; 
+        uniform sampler2D u_input_txr; 
+        uniform vec2 u_vertex_texel; 
+        uniform vec2 u_output_textel; 
+        uniform float u_dt; 
+        uniform float u_dissipation; 
+ 
+        vec4 bilerp (sampler2D sam, vec2 uv, vec2 tsize) { 
+            vec2 st = uv / tsize - 0.5; 
+ 
+            vec2 iuv = floor(st); 
+            vec2 fuv = fract(st); 
+ 
+            vec4 a = texture2D(sam, (iuv + vec2(0.5, 0.5)) * tsize); 
+            vec4 b = texture2D(sam, (iuv + vec2(1.5, 0.5)) * tsize); 
+            vec4 c = texture2D(sam, (iuv + vec2(0.5, 1.5)) * tsize); 
+            vec4 d = texture2D(sam, (iuv + vec2(1.5, 1.5)) * tsize); 
+ 
+            return mix(mix(a, b, fuv.x), mix(c, d, fuv.x), fuv.y); 
+        } 
+ 
+        void main () { 
+            vec2 coord = vUv - u_dt * bilerp(u_velocity_txr, vUv, u_vertex_texel).xy * u_vertex_texel; 
+            gl_FragColor = u_dissipation * bilerp(u_input_txr, coord, u_output_textel); 
+            gl_FragColor.a = 1.; 
+        } 
+    </script> 
+ 
+    <script type="x-shader/x-fragment" id="fragShaderDivergence"> 
+      precision highp float; 
+        precision highp sampler2D; 
+ 
+        varying highp vec2 vUv; 
+        varying highp vec2 vL; 
+        varying highp vec2 vR; 
+        varying highp vec2 vT; 
+        varying highp vec2 vB; 
+        uniform sampler2D u_velocity_txr; 
+ 
+        void main () { 
+            float L = texture2D(u_velocity_txr, vL).x; 
+            float R = texture2D(u_velocity_txr, vR).x; 
+            float T = texture2D(u_velocity_txr, vT).y; 
+            float B = texture2D(u_velocity_txr, vB).y; 
+ 
+            float div = .5 * (R - L + T - B); 
+            gl_FragColor = vec4(div, 0., 0., 1.); 
+        } 
+    </script> 
+ 
+    <script type="x-shader/x-fragment" id="fragShaderPressure"> 
+      precision highp float; 
+        precision highp sampler2D;
+        varying highp vec2 vUv; 
+        varying highp vec2 vL; 
+        varying highp vec2 vR; 
+        varying highp vec2 vT; 
+        varying highp vec2 vB; 
+        uniform sampler2D u_pressure_txr; 
+        uniform sampler2D u_divergence_txr; 
+ 
+        void main () { 
+            float L = texture2D(u_pressure_txr, vL).x; 
+            float R = texture2D(u_pressure_txr, vR).x; 
+            float T = texture2D(u_pressure_txr, vT).x; 
+            float B = texture2D(u_pressure_txr, vB).x; 
+            float C = texture2D(u_pressure_txr, vUv).x; 
+            float divergence = texture2D(u_divergence_txr, vUv).x; 
+            float pressure = (L + R + B + T - divergence) * 0.25; 
+            gl_FragColor = vec4(pressure, 0., 0., 1.); 
+        } 
+    </script> 
+ 
+    <script type="x-shader/x-fragment" id="fragShaderGradientSubtract"> 
+      precision highp float; 
+        precision highp sampler2D; 
+ 
+        varying highp vec2 vUv; 
+        varying highp vec2 vL; 
+        varying highp vec2 vR; 
+        varying highp vec2 vT; 
+        varying highp vec2 vB; 
+        uniform sampler2D u_pressure_txr; 
+        uniform sampler2D u_velocity_txr; 
+ 
+        void main () { 
+            float L = texture2D(u_pressure_txr, vL).x; 
+            float R = texture2D(u_pressure_txr, vR).x; 
+            float T = texture2D(u_pressure_txr, vT).x; 
+            float B = texture2D(u_pressure_txr, vB).x; 
+            vec2 velocity = texture2D(u_velocity_txr, vUv).xy; 
+            velocity.xy -= vec2(R - L, T - B); 
+            gl_FragColor = vec4(velocity, 0., 1.); 
+        } 
+    </script> 
+ 
+    <script type="x-shader/x-fragment" id="fragShaderPoint"> 
+      precision highp float; 
+        precision highp sampler2D; 
+ 
+        varying vec2 vUv; 
+        uniform sampler2D u_input_txr; 
+        uniform float u_ratio; 
+        uniform vec3 u_point_value; 
+        uniform vec2 u_point; 
+        uniform float u_point_size; 
+ 
+        void main () { 
+            vec2 p = vUv - u_point.xy; 
+            p.x *= u_ratio; 
+            vec3 splat = pow(2., -dot(p, p) / u_point_size) * u_point_value; 
+            vec3 base = texture2D(u_input_txr, vUv).xyz; 
+            gl_FragColor = vec4(base + splat, 1.); 
+        } 
+    </script> 
+ 
+    <script type="x-shader/x-fragment" id="fragShaderDisplay"> 
+      precision highp float; 
+        precision highp sampler2D; 
+ 
+        varying vec2 vUv; 
+        uniform sampler2D u_output_texture; 
+ 
+        void main () { 
+            vec3 C = texture2D(u_output_texture, vUv).rgb; 
+            float a = max(C.r, max(C.g, C.b)); 
+            a = pow(.1 * a, .1); 
+            a = clamp(a, 0., 1.); 
+            gl_FragColor = vec4(1. - C, 1. - a); 
+        } 
+    </script> 
+    <script src="new.js"></script> 
+  </body> 
+</html>
